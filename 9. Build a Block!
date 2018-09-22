@@ -1,0 +1,71 @@
+import hashlib as hasher
+import datetime as date
+
+
+# This is a BLOCK. A block is just an object that becomes encrypted based on the last block, hence why it is "un-hackable"
+# It may seem confusing at first, but think of it like a train. You need keep previous carts to add onto the next cart.
+class Block:
+    def __init__(self, index, timestamp, data, previous_hash):
+        self.index = index
+        self.timestamp = timestamp
+        self.data = data
+        self.previous_hash = previous_hash
+        self.hash = self.hash_block()
+
+    def hash_block(self):
+        sha = hasher.sha256()
+        sha.update((str(self.index) +
+                   str(self.timestamp) +
+                   str(self.data) +
+                   str(self.previous_hash)).encode())
+        return sha.hexdigest()
+
+
+def create_genesis_block():
+  # Manually construct a block with
+  # index zero and arbitrary previous hash
+  return Block(0, date.datetime.now(), "Genesis Block", "0")
+
+
+def next_block(last_block):
+  this_index = last_block.index + 1
+  this_timestamp = date.datetime.now()
+  this_data = "Hey! I'm block " + str(this_index)
+  this_hash = last_block.hash
+  return Block(this_index, this_timestamp, this_data, this_hash)
+
+
+# Create the blockchain and add the genesis block
+blockchain = [create_genesis_block()]
+previous_block = blockchain[0]
+
+# How many blocks should we add to the chain
+# after the genesis block
+num_of_blocks_to_add = 20
+
+# Add blocks to the chain
+for i in range(0, num_of_blocks_to_add):
+  block_to_add = next_block(previous_block)
+  blockchain.append(block_to_add)
+  previous_block = block_to_add
+  # Tell everyone about it!
+  print("Block #{} has been added to the blockchain!".format(block_to_add.index))
+  print("Hash: {}\n".format(block_to_add.hash))
+
+# Here's the fun part!
+a = input("If the shipment has been received, enter 'Yes'. If not, enter 'No'.")
+# All input does is ask the user to type something into the code
+while a == "Yes":
+    # While you respond Yes, the prompt will keep adding blocks. Otherwise the program will end.
+    block_to_add = next_block(previous_block)
+    blockchain.append(block_to_add)
+    previous_block = block_to_add
+    # Tell everyone about it!
+    print(" ")
+    print("Block #{} has been added to the blockchain!".format(block_to_add.index))
+    print("Hash: {}\n".format(block_to_add.hash))
+    a = input("If the shipment has been received, enter 'Yes'. If not, enter 'No'.")
+
+# In a real world simulation, the blocks would be added via location rather than user input.
+# For example, if the GPS on a truck reaches its desired location, the commitment would be fulfilled and a block would be added
+
